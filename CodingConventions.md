@@ -24,8 +24,9 @@ This document outlines the coding conventions and best practices for my Family R
 1. **Interfaces**: Use PascalCase starting with descriptive names (e.g., `Recipe`, `MealPlan`, `Ingredient`)
 2. **Type definitions**: Store in the `/types` directory with `.d.ts` extension or `types.ts` files
 3. **Component Props**: Name as `ComponentNameProps` (e.g., `RecipeCardProps`)
-   
+
    Example types for my recipe app:
+
    ```typescript
    interface Recipe {
      id: string;
@@ -109,7 +110,7 @@ export default Component;
 2. **Custom styling**:
    - Global styles in `app/globals.css`
    - Component-specific styles using Tailwind class composition
-3. **Color scheme**: 
+3. **Color scheme**:
    - Primary: #4f6df5 (blue)
    - Secondary: #f97316 (orange)
    - Background: #ffffff (white)

@@ -6,7 +6,8 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4f6df5",
-  "orientation": "portrait-primary",  "icons": [
+  "orientation": "portrait-primary",
+  "icons": [
     {
       "src": "/icon-192x192.svg",
       "sizes": "192x192",
@@ -18,5 +19,9 @@
       "type": "image/svg+xml"
     }
   ],
-  "categories": ["food", "lifestyle", "utilities"]
+  "categories": [
+    "food",
+    "lifestyle",
+    "utilities"
+  ]
 }
