@@ -70,9 +70,58 @@ This document outlines the coding conventions and best practices for my Family R
    }
    ```
 
-## Component structure
+## Component Architecture
 
-### Components organization
+### Server Components (Default)
+
+Server components are the default in Next.js 13+ and should be used whenever possible.
+They offer better performance and smaller bundle sizes.
+
+Example of a server component:
+
+```tsx
+// app/recipes/[id]/page.tsx
+import { Recipe } from "@/types/recipe/recipe-types";
+
+async function getRecipe(id: string): Promise<Recipe> {
+  // Server-side data fetching
+  return fetch(`/api/recipes/${id}`).then(res => res.json());
+}
+
+export default async function RecipePage({ params }: { params: { id: string } }) {
+  const recipe = await getRecipe(params.id);
+  return <RecipeDisplay recipe={recipe} />;
+}
+```
+
+### Client Components
+
+Add "use client" directive only when the component needs:
+
+- Browser APIs
+- Event listeners
+- State or lifecycle effects
+- Client-side libraries
+
+Example of a client component:
+
+```tsx
+"use client";
+
+import { useState } from "react";
+
+export default function RecipeForm() {
+  const [title, setTitle] = useState("");
+  
+  return (
+    <form onSubmit={(e) => e.preventDefault()}>
+      <input value={title} onChange={e => setTitle(e.target.value)} />
+    </form>
+  );
+}
+```
+
+### Component Organization
 
 - **Shared components**: Located in `/components`, reusable across the app (e.g., `RecipeCard`, `IngredientList`, `RatingStars`)
 - **Feature-specific components**: Located within their respective feature folder in `/app` (e.g., `meal-plans/WeeklyCalendar`, `recipes/RecipeForm`)
@@ -109,6 +158,64 @@ const Component = ({ prop1, prop2 }: ComponentProps) => {
 
 export default Component;
 ```
+
+## Component Architecture
+
+### Server Components (Default)
+
+Server components are the default in Next.js 13+ and should be used whenever possible.
+They offer better performance and smaller bundle sizes.
+
+Example of a server component:
+
+```tsx
+// app/recipes/[id]/page.tsx
+import { Recipe } from "@/types/recipe/recipe-types";
+
+async function getRecipe(id: string): Promise<Recipe> {
+  // Server-side data fetching
+  return fetch(`/api/recipes/${id}`).then(res => res.json());
+}
+
+export default async function RecipePage({ params }: { params: { id: string } }) {
+  const recipe = await getRecipe(params.id);
+  return <RecipeDisplay recipe={recipe} />;
+}
+```
+
+### Client Components
+
+Add "use client" directive only when the component needs:
+
+- Browser APIs
+- Event listeners
+- State or lifecycle effects
+- Client-side libraries
+
+Example of a client component:
+
+```tsx
+"use client";
+
+import { useState } from "react";
+
+export default function RecipeForm() {
+  const [title, setTitle] = useState("");
+  
+  return (
+    <form onSubmit={(e) => e.preventDefault()}>
+      <input value={title} onChange={e => setTitle(e.target.value)} />
+    </form>
+  );
+}
+```
+
+### Component Organization
+
+- Keep client components as leaf nodes in the component tree
+- Don't mark layout files as client components
+- Group related client components together
+- Use server components for static content and layouts
 
 ## Styling conventions
 

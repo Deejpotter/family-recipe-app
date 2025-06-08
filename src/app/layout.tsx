@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/contexts/AuthContext";
+import Navbar from "@/components/navbar/Navbar";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -12,7 +14,7 @@ const geistMono = Geist_Mono({
 	subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
+const metadata: Metadata = {
 	title: "Family Recipe App",
 	description: "Personal family recipe manager and meal planner",
 	manifest: "/manifest.json",
@@ -25,22 +27,28 @@ export const metadata: Metadata = {
 	},
 };
 
+// Navigation items
+const navItems = [
+	{ name: "Recipes", path: "/recipes" },
+	{ name: "Meal Plans", path: "/meal-plans" },
+	{ name: "Shopping Lists", path: "/shopping-lists" },
+	{ name: "Pantry", path: "/pantry" },
+];
+
 export default function RootLayout({
 	children,
-}: Readonly<{
+}: {
 	children: React.ReactNode;
-}>) {
+}) {
 	return (
-		<html lang="en">
-			<head>
-				<link rel="apple-touch-icon" href="/icon-192x192.svg" />
-				<meta name="apple-mobile-web-app-capable" content="yes" />
-				<meta name="apple-mobile-web-app-status-bar-style" content="default" />
-			</head>
-			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-			>
-				{children}
+		<html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+			<body className="min-h-screen bg-gray-50">
+				<AuthProvider>
+					<div className="flex flex-col min-h-screen">
+						<Navbar brand="Family Recipe App" navItems={navItems} />
+						<main className="flex-grow">{children}</main>
+					</div>
+				</AuthProvider>
 			</body>
 		</html>
 	);

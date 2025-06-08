@@ -70,6 +70,9 @@ export interface Recipe extends MongoDocument {
 	createdBy: string;
 	favoriteCount?: number;
 	favorites?: string[]; // Array of userIds
+	leftoversStorageInfo?: string;
+	reheatingInstructions?: string;
+	stretchedMealSuggestions?: string[];
 }
 
 /**

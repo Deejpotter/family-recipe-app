@@ -1,12 +1,20 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { MealPlan, StoredFood } from "@/types/recipe/recipe.types";
+import { OptimizationResult } from "@/utils/meal-plan-optimizer";
 
 export default function MealPlansPage() {
 	// Mock data - will be replaced with actual database data
 	const currentDate = new Date();
 	const weekStartDate = new Date(currentDate);
 	weekStartDate.setDate(currentDate.getDate() - currentDate.getDay());
+
+	const [optimizationResult, setOptimizationResult] =
+		useState<OptimizationResult | null>(null);
 
 	const days = Array(7)
 		.fill(null)
@@ -72,6 +80,86 @@ export default function MealPlansPage() {
 						</Link>
 					</div>
 				</div>
+
+				{/* Efficiency Metrics */}
+				{optimizationResult && (
+					<div className="mb-6 bg-white p-4 rounded-lg shadow">
+						<h2 className="text-lg font-semibold mb-3">Meal Plan Efficiency</h2>
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+							<div>
+								<h3 className="text-sm font-medium text-gray-600">
+									Ingredient Usage
+								</h3>
+								<div className="flex items-center mt-1">
+									<div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
+										<div
+											className="bg-[#4f6df5] h-2.5 rounded-full"
+											style={{
+												width: `${optimizationResult.efficiency.ingredientUsage}%`,
+											}}
+										></div>
+									</div>
+									<span className="text-sm">
+										{optimizationResult.efficiency.ingredientUsage}%
+									</span>
+								</div>
+							</div>
+							<div>
+								<h3 className="text-sm font-medium text-gray-600">
+									Leftover Utilization
+								</h3>
+								<div className="flex items-center mt-1">
+									<div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
+										<div
+											className="bg-[#f97316] h-2.5 rounded-full"
+											style={{
+												width: `${optimizationResult.efficiency.leftoverUtilization}%`,
+											}}
+										></div>
+									</div>
+									<span className="text-sm">
+										{optimizationResult.efficiency.leftoverUtilization}%
+									</span>
+								</div>
+							</div>
+							<div>
+								<h3 className="text-sm font-medium text-gray-600">
+									Expiration Optimization
+								</h3>
+								<div className="flex items-center mt-1">
+									<div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
+										<div
+											className="bg-green-500 h-2.5 rounded-full"
+											style={{
+												width: `${optimizationResult.efficiency.expirationOptimization}%`,
+											}}
+										></div>
+									</div>
+									<span className="text-sm">
+										{optimizationResult.efficiency.expirationOptimization}%
+									</span>
+								</div>
+							</div>
+						</div>
+						{optimizationResult.recommendations.length > 0 && (
+							<div className="mt-4">
+								<h3 className="text-sm font-medium text-gray-600 mb-2">
+									Recommendations
+								</h3>
+								<ul className="text-sm text-gray-600 space-y-1">
+									{optimizationResult.recommendations.map(
+										(rec: string, index: number) => (
+											<li key={index} className="flex items-start">
+												<span className="text-[#4f6df5] mr-2">•</span>
+												{rec}
+											</li>
+										)
+									)}
+								</ul>
+							</div>
+						)}
+					</div>
+				)}
 
 				{/* Week navigation */}
 				<div className="flex justify-between items-center mb-6 bg-gray-50 p-4 rounded-lg">

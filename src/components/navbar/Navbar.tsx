@@ -1,9 +1,9 @@
 "use client";
-// NOTE: All internal navigation uses Next.js's Link component for optimal routing and prefetching.
-// Replace with a relevant link for other react projects.
+
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import Auth from "./Auth";
 
 /**
@@ -20,14 +20,10 @@ export interface NavItem {
  * NavbarProps defines the props required for the Navbar component.
  * - brand: Branding text or element for the navbar.
  * - navItems: Array of navigation items (links, dropdowns, etc.).
- * - authProps: Props to pass to the Auth component (optional).
- * - showAuth: Whether to show the Auth section (default: true if authProps provided)
  */
 export interface NavbarProps {
 	brand: React.ReactNode;
 	navItems: NavItem[];
-	authProps?: React.ComponentProps<typeof Auth>;
-	showAuth?: boolean;
 }
 
 /**
@@ -37,154 +33,120 @@ export interface NavbarProps {
  *
  * To use in a non-Next.js project, replace 'Link' with your router's link component.
  */
-const Navbar = ({
-	brand,
-	navItems,
-	authProps,
-	showAuth = true,
-}: NavbarProps) => {
-	// State for managing the collapsed state of the navbar. Initially set to true (collapsed).
-	const [isNavCollapsed, setIsNavCollapsed] = useState(true);
-	// State for managing the visibility of the dropdown menu. Initially set to false (hidden).
-	const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-	// State for managing the scrolled state of the navbar
-	const [isScrolled, setIsScrolled] = useState(false);
-	// Get current pathname to highlight active links (Next.js only)
+export default function Navbar({ brand, navItems }: NavbarProps) {
 	const pathname = usePathname();
-
-	// Toggle the collapsed state of the navbar (for mobile)
-	const handleNavCollapse = () => setIsNavCollapsed(!isNavCollapsed);
-
-	// Toggle dropdown by name
-	const toggleDropdown = (name: string) => {
-		setOpenDropdown((prev) => (prev === name ? null : name));
-	};
-
-	// Close all dropdowns
-	const closeDropdown = () => setOpenDropdown(null);
-
-	// Close both dropdown and mobile navbar
-	const handleLinkClick = () => {
-		closeDropdown();
-		setIsNavCollapsed(true);
-	};
-
-	// Listen for scrolling to update isScrolled state
-	useEffect(() => {
-		const handleScroll = () => {
-			setIsScrolled(window.scrollY > 10);
-		};
-		window.addEventListener("scroll", handleScroll);
-		return () => window.removeEventListener("scroll", handleScroll);
-	}, []);
-
-	// Check if the given path is active (current page)
-	const isActive = (path?: string) => path && pathname === path;
-
-	// Render a single nav item (link or dropdown)
-	const renderNavItem = (item: NavItem) => {
-		if (item.items && item.items.length > 0) {
-			// Dropdown menu
-			return (
-				<li
-					key={item.name}
-					className="nav-item dropdown"
-					onMouseEnter={() => setOpenDropdown(item.name)}
-					onMouseLeave={closeDropdown}
-				>
-					<span
-						className="nav-link dropdown-toggle px-3 py-2 mx-1"
-						role="button"
-						aria-expanded={openDropdown === item.name}
-						onClick={() => toggleDropdown(item.name)}
-					>
-						{item.name}
-					</span>
-					<ul
-						className={`dropdown-menu ${
-							openDropdown === item.name ? "show" : ""
-						}`}
-					>
-						{item.items.map((sub) => (
-							<li key={sub.name}>
-								{sub.path ? (
-									<Link href={sub.path} onClick={handleLinkClick}>
-										<span className="dropdown-item">{sub.name}</span>
-									</Link>
-								) : (
-									<span className="dropdown-item">{sub.name}</span>
-								)}
-							</li>
-						))}
-					</ul>
-				</li>
-			);
-		}
-		// Regular nav link
-		return (
-			<li className="nav-item" key={item.name}>
-				{item.path ? (
-					<Link href={item.path} onClick={handleLinkClick}>
-						<span
-							className={`nav-link px-1 py-1 mx-1 ${
-								isActive(item.path) ? "active-link" : ""
-							}`}
-						>
-							{item.name}
-						</span>
-					</Link>
-				) : (
-					<span className="nav-link px-3 py-2 mx-1">{item.name}</span>
-				)}
-			</li>
-		);
-	};
+	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+	const { user, isLoading } = useAuth();
 
 	return (
-		// Bootstrap's navbar component with fixed-top class to make it sticky
-		// Add shadow when scrolled, and adjust padding/background
-		<nav
-			className={`navbar navbar-expand-lg navbar-light fixed-top ${
-				isScrolled ? "shadow-sm bg-white py-2" : "bg-light py-3"
-			} transition-all`}
-		>
-			<div className="container-fluid">
-				{/* Navbar brand (customizable) */}
-				<Link href="/" onClick={handleLinkClick}>
-					<span
-						className={`navbar-brand ${isScrolled ? "fs-5" : "fs-4"} fw-bold`}
-					>
-						{brand}
-					</span>
-				</Link>
-				{/* Button to toggle the navbar on mobile devices. */}
-				<button
-					className="navbar-toggler"
-					type="button"
-					onClick={handleNavCollapse}
-					aria-expanded={!isNavCollapsed}
-					aria-label="Toggle navigation"
-				>
-					<span className="navbar-toggler-icon"></span>
-				</button>
-				{/* Collapsible part of the navbar. Its visibility is controlled by isNavCollapsed state. */}
-				<div
-					className={`${isNavCollapsed ? "collapse" : ""} navbar-collapse`}
-					id="navbarNav"
-				>
-					<ul className="navbar-nav">{navItems.map(renderNavItem)}</ul>
-				</div>
-				{/* Auth section (optional, customizable) */}
-				{/* To customize Auth, pass props here if your Auth component supports them. Replace or remove as needed for your project. */}
-				{showAuth &&
-					(authProps && typeof authProps === "object" ? (
-						<Auth {...authProps} />
-					) : (
+		<nav className="bg-white border-b border-gray-200">
+			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+				<div className="flex justify-between h-16">
+					<div className="flex">
+						<div className="flex-shrink-0 flex items-center">
+							{typeof brand === "string" ? (
+								<Link href={user ? "/dashboard" : "/"} className="text-xl font-semibold">
+									{brand}
+								</Link>
+							) : (
+								brand
+							)}
+						</div>
+						{user && !isLoading && (
+							<div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+								{navItems.map((item) => (
+									<Link
+										key={item.name}
+										href={item.path || "#"}
+										className={`inline-flex items-center px-1 pt-1 text-sm font-medium
+											${
+												pathname === item.path
+													? "border-b-2 border-indigo-500 text-gray-900"
+													: "border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+											}`}
+									>
+										{item.name}
+									</Link>
+								))}
+							</div>
+						)}
+					</div>
+
+					{/* Auth component in the navbar */}
+					<div className="hidden sm:ml-6 sm:flex sm:items-center">
 						<Auth />
+					</div>
+
+					{/* Mobile menu button */}
+					<div className="flex items-center sm:hidden">
+						<button
+							type="button"
+							className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+							aria-controls="mobile-menu"
+							aria-expanded="false"
+							onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+						>
+							<span className="sr-only">Open main menu</span>
+							{/* Icon when menu is closed */}
+							<svg
+								className={`${isMobileMenuOpen ? "hidden" : "block"} h-6 w-6`}
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+								aria-hidden="true"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={2}
+									d="M4 6h16M4 12h16M4 18h16"
+								/>
+							</svg>
+							{/* Icon when menu is open */}
+							<svg
+								className={`${isMobileMenuOpen ? "block" : "hidden"} h-6 w-6`}
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+								aria-hidden="true"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={2}
+									d="M6 18L18 6M6 6l12 12"
+								/>
+							</svg>
+						</button>
+					</div>
+				</div>
+			</div>			{/* Mobile menu */}
+			<div
+				className={`${isMobileMenuOpen ? "block" : "hidden"} sm:hidden`}
+				id="mobile-menu"
+			>
+				<div className="pt-2 pb-3 space-y-1">
+					{user && !isLoading && navItems.map((item) => (
+						<Link
+							key={item.name}
+							href={item.path || "#"}
+							className={`block pl-3 pr-4 py-2 text-base font-medium
+                ${
+									pathname === item.path
+										? "bg-indigo-50 border-l-4 border-indigo-500 text-indigo-700"
+										: "border-l-4 border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700"
+								}`}
+						>
+							{item.name}
+						</Link>
 					))}
+					<div className="pl-3 pr-4 py-2">
+						<Auth />
+					</div>
+				</div>
 			</div>
 		</nav>
 	);
-};
-
-export default Navbar;
+}
