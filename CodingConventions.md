@@ -1,14 +1,22 @@
 # Coding Conventions for Family Recipe App
 
-## Overview
-
-This document outlines the coding conventions and best practices for my Family Recipe App project. The goal is to maintain a consistent code structure that makes it easy to find files and understand the codebase. Having explicit conventions helps me maintain consistency throughout development and makes it easier if I want to expand the app in the future.
+This document outlines the coding conventions and best practices for my Family Recipe App project. The goal is to keep the codebase consistent, maintainable, and easy for me (and my family) to understand and expand in the future. These conventions reflect my personal preferences and the needs of this specific project.
 
 ## Index
 
 1. [Naming conventions](#naming-conventions)
    - [Files and folders](#files-and-folders)
    - [TypeScript](#typescript)
+2. [Component structure](#component-structure)
+3. [Styling conventions](#styling-conventions)
+4. [Documentation](#documentation)
+5. [Feature structure](#feature-structure)
+6. [State management](#state-management)
+7. [Testing strategy](#testing-strategy)
+8. [Deployment](#deployment)
+9. [Testing Conventions](#testing-conventions)
+10. [File Headers](#file-headers)
+11. [Best practices](#best-practices)
 
 ## Naming conventions
 
@@ -66,10 +74,8 @@ This document outlines the coding conventions and best practices for my Family R
 
 ### Components organization
 
-Components are organized in two main ways:
-
-1. **Shared components**: Located in `/components` folder, reusable across the application
-2. **Feature-specific components**: Located within their respective feature folder in `/app`
+- **Shared components**: Located in `/components`, reusable across the app (e.g., `RecipeCard`, `IngredientList`, `RatingStars`)
+- **Feature-specific components**: Located within their respective feature folder in `/app` (e.g., `meal-plans/WeeklyCalendar`, `recipes/RecipeForm`)
 
 ### Component file structure
 
@@ -106,117 +112,74 @@ export default Component;
 
 ## Styling conventions
 
-1. **Primary styling**: Tailwind CSS for consistent layout and components
-2. **Custom styling**:
-   - Global styles in `app/globals.css`
-   - Component-specific styles using Tailwind class composition
-3. **Color scheme**:
-   - Primary: #4f6df5 (blue)
-   - Secondary: #f97316 (orange)
-   - Background: #ffffff (white)
-   - Text: #1e293b (slate-800)
+- **Primary styling**: Tailwind CSS for layout and components
+- **Custom styling**:
+  - Global styles in `app/globals.css`
+  - Component-specific styles using Tailwind class composition
+- **Color scheme**:
+  - Primary: #4f6df5 (blue)
+  - Secondary: #f97316 (orange)
+  - Background: #ffffff (white)
+  - Text: #1e293b (slate-800)
 
 ## Documentation
 
-1. **Code comments**: Include descriptive comments for complex logic
-2. **JSDoc**: Use JSDoc style comments for functions and components
-3. **README**: Maintain up-to-date documentation in README.md
+- **Code comments**: Add descriptive comments for complex logic or important decisions
+- **JSDoc**: Use JSDoc style comments for functions and components
+- **README**: Keep documentation up to date for future reference
 
 ## Feature structure
 
-My application will have the following main features, each organized in its own directory:
+The app is organized by feature, each in its own directory under `/app`:
 
-1. **Recipe Management**:
-   - `/app/recipes`
-   - Components: RecipeCard, RecipeDetail, RecipeForm
-   - Types: Recipe, Ingredient
+- **Recipe Management**: `/app/recipes`
+- **Meal Planning**: `/app/meal-plans`
+- **Shopping List**: `/app/shopping-lists`
+- **Pantry Inventory**: `/app/pantry`
+- **Family Collaboration**: `/app/family`
 
-2. **Meal Planning**:
-   - `/app/meal-plans`
-   - Components: MealPlanCalendar, MealPlanForm
-   - Types: MealPlan, DailyPlan
-
-3. **Shopping List**:
-   - `/app/shopping-lists`
-   - Components: ShoppingList, GroceryItem
-   - Types: ShoppingList, GroceryItem
-
-4. **Pantry Inventory**:
-   - `/app/pantry`
-   - Components: PantryList, PantryItem
-   - Types: PantryItem, StockLevel
-
-5. **Family Collaboration**:
-   - `/app/family`
-   - Components: FamilyMember, SharingSettings
-   - Types: FamilyMember, Permissions
+Each feature contains its own components, types, and tests as needed.
 
 ## State management
 
-1. **Local state**: Use React hooks (`useState`, `useReducer`) for component-local state
-2. **Server state**: Use Next.js server actions for data operations
-3. **Data persistence**:
-   - MongoDB for database storage
-   - Local storage for user preferences and settings
+- **Local state**: Use React hooks (`useState`, `useReducer`) for component-local state
+- **Server state**: Use Next.js server actions for data operations
+- **Data persistence**:
+  - MongoDB for database storage
+  - Local storage for user preferences and settings
 
 ## Testing strategy
 
-1. **Unit tests**: Test individual components and utility functions
-2. **Integration tests**: Test feature workflows (e.g., creating a recipe and adding it to a meal plan)
-3. **End-to-end tests**: Test the complete user journey
+- **Unit tests**: Test individual components and utility functions
+- **Integration tests**: Test feature workflows (e.g., creating a recipe and adding it to a meal plan)
+- **End-to-end tests**: Store in a top-level `e2e` directory (if implemented)
 
 ## Deployment
 
-The application is deployed on Netlify with the following workflow:
-
-1. Push changes to the main branch
-2. Netlify automatically builds and deploys the application
-3. PWA assets are generated during the build process
-4. Environment variables are configured in Netlify
+- The app is deployed on Netlify
+- Pushes to main branch trigger automatic builds and deploys
+- PWA assets are generated during build
+- Environment variables are configured in Netlify dashboard
 
 ## Testing Conventions
 
-### Testing Overview
-
-This document outlines the testing conventions and best practices for the Family Recipe App project. Following these guidelines will ensure consistency in how we test our code and make it easier for team members to understand and contribute to tests.
-
 ### Test File Structure
 
-#### File Naming and Location
-
-1. **Unit Tests**: Place unit tests next to the file they're testing with a `.test.ts` or `.test.tsx` suffix
-   - Example: `recipeUtils.ts` → `recipeUtils.test.ts`
-2. **Integration Tests**: Create a `__tests__` folder within the feature directory
-   - Example: `app/recipes/__tests__/integration.test.ts`
-3. **E2E Tests**: Store in a top-level `e2e` directory (if implemented later)
+- **Unit Tests**: Place next to the file they're testing with a `.test.ts` or `.test.tsx` suffix
+- **Integration Tests**: In a `__tests__` folder within the feature directory
+- **E2E Tests**: In a top-level `e2e` directory
 
 ### Testing Approaches
 
-#### Server Actions & API Testing
-
 - Mock external dependencies (databases, third-party services)
 - Test both success and error cases
-- Verify that returned data matches expected format
-
-#### Component Testing
-
-- Focus on component behavior rather than implementation details
-- Test user interactions (clicks, form submissions)
-- Verify that components render correctly with different props
-- Test accessibility where applicable
-
-#### Utility Functions Testing
-
-- Test edge cases thoroughly
-- Use table-driven tests for functions with many input/output combinations
-- Test error handling
+- Focus on component behavior and user interactions
+- Test accessibility where possible
+- Use table-driven tests for utility functions
 
 ### Test Structure
 
-Use the following structure for your tests:
-
 ```typescript
-// Import dependencies
 import { functionToTest } from './path-to-function';
 
 describe('FunctionName or ComponentName', () => {
@@ -237,24 +200,24 @@ describe('FunctionName or ComponentName', () => {
 
 ### Mocking
 
-- Use Jest's mocking capabilities for external dependencies
-- Create mock data factories for commonly used test data
-- Define mocks in a separate file if they're reused across tests
+- Use Jest's mocking for external dependencies
+- Create mock data factories for common test data
+- Define reusable mocks in a separate file if needed
 
 ### Coverage Goals
 
-- Aim for at least 80% code coverage for critical business logic
-- Focus on meaningful tests rather than hitting coverage numbers
+- Aim for at least 80% code coverage for critical logic
+- Focus on meaningful tests, not just coverage numbers
 - Always test edge cases and error handling
 
 ### Continuous Integration
 
-- Tests will run automatically on pull requests
-- Failed tests should block merges to main branches
+- Tests run automatically on pull requests
+- Failed tests block merges to main
 
 ## File Headers
 
-Every file should include a consistent header comment with the following format:
+Every file should include a header comment with:
 
 ```typescript
 /**
@@ -262,7 +225,6 @@ Every file should include a consistent header comment with the following format:
  * Updated: [Date in DD/MM/YYYY format]
  * Author: [Author Name]
  * Description: [Brief description of the file's purpose]
- * [Optional additional details about implementation]
  */
 ```
 
@@ -271,19 +233,22 @@ Example:
 ```typescript
 /**
  * RecipeUtils
- * Updated: 29/05/2025
+ * Updated: 08/06/2025
  * Author: Deej Potter
  * Description: Helper functions for recipe management and filtering.
- * Implements sorting, filtering, and transformation of recipe data.
  */
 ```
 
 ## Best practices
 
-1. **TypeScript**: Use proper typing for all components and functions
-2. **Error handling**: Include proper error handling for asynchronous operations
-3. **Accessibility**: Follow accessibility best practices in UI components
-4. **Performance**: Optimize components using React best practices (memoization, etc.)
-5. **Testing**: Write tests following the testing conventions outlined above
-6. **File Headers**: Include consistent file headers in all files as specified above
-7. **Documentation**: Keep README files and inline documentation up to date
+- Use TypeScript typing for all components and functions
+- Include error handling for async operations
+- Follow accessibility best practices in UI
+- Optimize components using React best practices
+- Write tests as outlined above
+- Include consistent file headers
+- Keep documentation up to date
+
+---
+
+*These conventions are tailored for my Family Recipe App and may evolve as the project grows or as my preferences change. Comments and documentation are written from my perspective to help me (or my family) maintain and expand the app in the future.*

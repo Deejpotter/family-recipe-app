@@ -6,7 +6,7 @@
  * This abstraction allows us to switch between data sources transparently.
  */
 
-import { DatabaseResponse } from "@/types/mongodb/mongo-types";
+import { DatabaseResponse, MongoDocument } from "@/types/mongodb/mongo-types";
 
 /**
  * Data Provider Interface
@@ -17,7 +17,7 @@ export interface DataProvider {
 	/**
 	 * Get all documents from a collection
 	 */
-	getAllDocuments: <T>(
+	getAllDocuments: <T extends MongoDocument>(
 		collection: string,
 		options?: DataProviderOptions
 	) => Promise<DatabaseResponse<T[]>>;
@@ -25,16 +25,15 @@ export interface DataProvider {
 	/**
 	 * Get documents from a collection based on a filter
 	 */
-	getDocuments: <T>(
+	getDocuments: <T extends MongoDocument>(
 		collection: string,
 		filter: Record<string, any>,
 		options?: DataProviderOptions
 	) => Promise<DatabaseResponse<T[]>>;
-
 	/**
 	 * Create a new document in a collection
 	 */
-	createDocument: <T>(
+	createDocument: <T extends MongoDocument>(
 		collection: string,
 		document: Omit<T, "_id">,
 		options?: DataProviderOptions
@@ -43,7 +42,7 @@ export interface DataProvider {
 	/**
 	 * Update a document in a collection
 	 */
-	updateDocument: <T>(
+	updateDocument: <T extends MongoDocument>(
 		collection: string,
 		id: string,
 		update: Partial<T>,

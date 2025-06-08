@@ -1,14 +1,15 @@
 /**
  * Data Service
- * Updated: 07/05/25
+ * Updated: 08/06/2025
  * Author: Deej Potter
  * Description: Centralized service for data operations across the application
  * Makes it easy to access data with the appropriate provider and options
  */
 
 import ShippingItem from "@/types/box-shipping-calculator/ShippingItem";
-import { DatabaseResponse } from "@/types/mongodb/mongo-types";
-import { DataProviderOptions } from "../../types/mongodb/DataProvider";
+import { Recipe } from "@/types/recipe/recipe-types";
+import { MealPlan, ShoppingList } from "@/types/meal-plan/meal-plan-types";
+import { DatabaseResponse, MongoDocument } from "@/types/mongodb/mongo-types";
 import { MongoDBProvider } from "./MongoDBProvider"; // Added
 
 // Singleton instance of the hybrid provider
@@ -66,6 +67,11 @@ export const DataService = {
 		): Promise<DatabaseResponse<ShippingItem>> => {
 			// Use generic updateDocument method from MongoDBProvider
 			const { _id, ...updateData } = item;
+
+			if (!_id) {
+				throw new Error("Cannot update item without an _id");
+			}
+
 			// MongoDBProvider's updateDocument handles updating updatedAt
 			return dataProvider.updateDocument<ShippingItem>(
 				"Items",
@@ -92,7 +98,7 @@ export const DataService = {
 		/**
 		 * Get all documents from a user-specific collection
 		 */
-		getAll: async <T>(
+		getAll: async <T extends MongoDocument>(
 			collection: string,
 			userId: string
 		): Promise<DatabaseResponse<T[]>> => {
@@ -105,7 +111,7 @@ export const DataService = {
 		/**
 		 * Get filtered documents from a user-specific collection
 		 */
-		getFiltered: async <T>(
+		getFiltered: async <T extends MongoDocument>(
 			collection: string,
 			userId: string,
 			filter: Record<string, any>
@@ -119,7 +125,7 @@ export const DataService = {
 		/**
 		 * Add a document to a user-specific collection
 		 */
-		add: async <T>(
+		add: async <T extends MongoDocument>(
 			collection: string,
 			userId: string,
 			document: Omit<T, "_id">
@@ -133,7 +139,7 @@ export const DataService = {
 		/**
 		 * Update a document in a user-specific collection
 		 */
-		update: async <T>(
+		update: async <T extends MongoDocument>(
 			collection: string,
 			userId: string,
 			id: string,
@@ -148,7 +154,7 @@ export const DataService = {
 		/**
 		 * Delete a document from a user-specific collection
 		 */
-		delete: async <T>(
+		delete: async <T extends MongoDocument>(
 			collection: string,
 			userId: string,
 			id: string
@@ -157,6 +163,245 @@ export const DataService = {
 				userId,
 				isPublic: false,
 			});
+		},
+	},
+
+	/**
+	 * Recipe API
+	 * Methods for managing recipes
+	 */
+	recipes: {
+		/**
+		 * Get all recipes accessible to the user
+		 */
+		getAll: async (userId: string): Promise<DatabaseResponse<Recipe[]>> => {
+			return dataProvider.getDocuments<Recipe>("Recipes", {
+				$or: [{ createdBy: userId }, { isPublic: true }, { favorites: userId }],
+				deletedAt: null,
+			});
+		},
+
+		/**
+		 * Get a single recipe by ID
+		 */
+		getById: async (id: string): Promise<DatabaseResponse<Recipe>> => {
+			return dataProvider
+				.getDocuments<Recipe>("Recipes", { _id: id })
+				.then((res) => ({
+					...res,
+					data: res.data?.[0],
+				}));
+		},
+
+		/**
+		 * Create a new recipe
+		 */
+		create: async (
+			recipe: Omit<Recipe, "_id">,
+			userId: string
+		): Promise<DatabaseResponse<Recipe>> => {
+			return dataProvider.createDocument<Recipe>("Recipes", {
+				...recipe,
+				createdBy: userId,
+			});
+		},
+
+		/**
+		 * Update an existing recipe
+		 */
+		update: async (
+			id: string,
+			recipe: Partial<Recipe>
+		): Promise<DatabaseResponse<Recipe>> => {
+			return dataProvider.updateDocument<Recipe>("Recipes", id, recipe);
+		},
+
+		/**
+		 * Delete a recipe (soft delete)
+		 */
+		delete: async (id: string): Promise<DatabaseResponse<Recipe>> => {
+			return dataProvider.deleteDocument<Recipe>("Recipes", id);
+		},
+
+		/**
+		 * Toggle a recipe favorite status for a user
+		 */
+		toggleFavorite: async (
+			recipeId: string,
+			userId: string
+		): Promise<DatabaseResponse<Recipe>> => {
+			const recipe = await dataProvider
+				.getDocuments<Recipe>("Recipes", { _id: recipeId })
+				.then((res) => res.data?.[0]);
+			if (!recipe) {
+				return {
+					success: false,
+					error: "Recipe not found",
+					status: 404,
+					message: "Recipe not found",
+				};
+			}
+
+			const favorites = recipe.favorites || [];
+			const isFavorited = favorites.includes(userId);
+
+			return dataProvider.updateDocument<Recipe>("Recipes", recipeId, {
+				favorites: isFavorited
+					? favorites.filter((id) => id !== userId)
+					: [...favorites, userId],
+				favoriteCount: (recipe.favoriteCount || 0) + (isFavorited ? -1 : 1),
+			});
+		},
+	},
+
+	/**
+	 * Meal Plan API
+	 * Methods for managing meal plans
+	 */
+	mealPlans: {
+		/**
+		 * Get all meal plans for a user
+		 */
+		getAll: async (userId: string): Promise<DatabaseResponse<MealPlan[]>> => {
+			return dataProvider.getDocuments<MealPlan>("MealPlans", {
+				$or: [{ createdBy: userId }, { sharedWith: userId }],
+				deletedAt: null,
+			});
+		},
+
+		/**
+		 * Get a single meal plan by ID
+		 */
+		getById: async (id: string): Promise<DatabaseResponse<MealPlan>> => {
+			return dataProvider
+				.getDocuments<MealPlan>("MealPlans", { _id: id })
+				.then((res) => ({
+					...res,
+					data: res.data?.[0],
+				}));
+		},
+
+		/**
+		 * Create a new meal plan
+		 */
+		create: async (
+			mealPlan: Omit<MealPlan, "_id">,
+			userId: string
+		): Promise<DatabaseResponse<MealPlan>> => {
+			return dataProvider.createDocument<MealPlan>("MealPlans", {
+				...mealPlan,
+				createdBy: userId,
+			});
+		},
+
+		/**
+		 * Update an existing meal plan
+		 */
+		update: async (
+			id: string,
+			mealPlan: Partial<MealPlan>
+		): Promise<DatabaseResponse<MealPlan>> => {
+			return dataProvider.updateDocument<MealPlan>("MealPlans", id, mealPlan);
+		},
+
+		/**
+		 * Delete a meal plan (soft delete)
+		 */
+		delete: async (id: string): Promise<DatabaseResponse<MealPlan>> => {
+			return dataProvider.deleteDocument<MealPlan>("MealPlans", id);
+		},
+
+		/**
+		 * Generate a shopping list from a meal plan
+		 */
+		generateShoppingList: async (
+			mealPlanId: string,
+			userId: string
+		): Promise<DatabaseResponse<ShoppingList>> => {
+			// Get the meal plan
+			const mealPlan = await dataProvider
+				.getDocuments<MealPlan>("MealPlans", { _id: mealPlanId })
+				.then((res) => res.data?.[0]);
+			if (!mealPlan) {
+				return {
+					success: false,
+					error: "Meal plan not found",
+					status: 404,
+					message: "Meal plan not found",
+				};
+			}
+
+			// Get all recipes used in the meal plan
+			const recipeIds = new Set(
+				mealPlan.days.flatMap((day) => day.meals.map((meal) => meal.recipeId))
+			);
+
+			const recipes = await dataProvider
+				.getDocuments<Recipe>("Recipes", {
+					_id: { $in: Array.from(recipeIds) },
+				})
+				.then((res) => res.data || []);
+
+			// Aggregate ingredients
+			const aggregatedIngredients = new Map<
+				string,
+				{
+					quantity: number;
+					unit: string;
+					category: string;
+					recipes: string[];
+					referenceIds: string[];
+				}
+			>();
+
+			for (const recipe of recipes) {
+				for (const ingredient of recipe.ingredients) {
+					const key = ingredient.name.toLowerCase();
+					const existing = aggregatedIngredients.get(key) || {
+						quantity: 0,
+						unit: ingredient.unit,
+						category: "uncategorized",
+						recipes: [],
+						referenceIds: [],
+					};
+
+					existing.quantity += ingredient.quantity;
+					if (!existing.recipes.includes(recipe.title)) {
+						existing.recipes.push(recipe.title);
+						existing.referenceIds.push(recipe._id as string);
+					}
+
+					aggregatedIngredients.set(key, existing);
+				}
+			}
+
+			// Create shopping list
+			const shoppingList: Omit<ShoppingList, "_id"> = {
+				title: `Shopping List for ${mealPlan.title}`,
+				mealPlanId: mealPlanId,
+				dateRange: {
+					start: mealPlan.startDate,
+					end: mealPlan.endDate,
+				},
+				items: Array.from(aggregatedIngredients.entries()).map(
+					([name, data]) => ({
+						name,
+						quantity: data.quantity,
+						unit: data.unit,
+						category: data.category,
+						checked: false,
+						reference: data.recipes.join(", "),
+						referenceId: data.referenceIds[0],
+					})
+				),
+				createdBy: userId,
+				sharedWith: mealPlan.sharedWith,
+			};
+
+			return dataProvider.createDocument<ShoppingList>(
+				"ShoppingLists",
+				shoppingList
+			);
 		},
 	},
 

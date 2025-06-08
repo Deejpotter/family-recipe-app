@@ -2,7 +2,7 @@
 # This file configures Netlify to properly handle Next.js deployments
 
 [build]
-command = "npm run build"
+command = "yarn build"
 publish = ".next"
 
 [[plugins]]

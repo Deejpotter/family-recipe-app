@@ -2,6 +2,19 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
+interface ShoppingItem {
+	id: string;
+	category: string;
+	name: string;
+	quantity: number;
+	unit: string;
+	checked: boolean;
+}
+
+interface GroupedItems {
+	[category: string]: ShoppingItem[];
+}
+
 export default function ShoppingListsPage() {
 	// Mock data - will be replaced with actual database data
 	const shoppingLists = [
@@ -142,7 +155,7 @@ export default function ShoppingListsPage() {
 	};
 
 	// Group items by category
-	const groupedItems = currentList.items.reduce((acc, item) => {
+	const groupedItems = currentList.items.reduce<GroupedItems>((acc, item) => {
 		if (!acc[item.category]) {
 			acc[item.category] = [];
 		}
